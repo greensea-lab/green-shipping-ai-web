@@ -1,0 +1,21 @@
+.App {
+  text-align: center;
+}
+
+.layout {
+  min-height: 100vh;
+}
+
+.ant-layout-header {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ant-layout-content {
+  background: #f0f2f5;
+}
+
+.ant-layout-footer {
+  background: #001529;
+  color: #fff;
+}
