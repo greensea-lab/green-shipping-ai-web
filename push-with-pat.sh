@@ -3,9 +3,11 @@
 echo "🚀 GitHub Push with PAT"
 echo "======================="
 
-# .env 파일에서 PAT 읽기
+# .env 파일에서 PAT 읽기 (괄호 문제 해결)
 if [ -f ".env" ]; then
-    source .env
+    # source 대신 grep으로 PAT 추출
+    GITHUB_PAT=$(grep "^GITHUB_PAT=" .env | cut -d'=' -f2)
+    
     if [ -z "$GITHUB_PAT" ]; then
         echo "❌ .env 파일에 GITHUB_PAT가 설정되지 않았습니다."
         echo "먼저 './setup-github-pat.sh'를 실행해주세요."
