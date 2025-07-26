@@ -10,8 +10,9 @@
 6. [환경 격리 및 관리](#6-환경-격리-및-관리)
 7. [의존성 관리](#7-의존성-관리)
 8. [환경별 설정](#8-환경별-설정)
-9. [문제 해결](#9-문제-해결)
-10. [추가 학습](#10-추가-학습)
+9. [GitHub 설정 및 배포](#9-github-설정-및-배포)
+10. [문제 해결](#10-문제-해결)
+11. [추가 학습](#11-추가-학습)
 
 ---
 
@@ -866,9 +867,68 @@ npm info [패키지명]
 
 ---
 
-## 10. 추가 학습
+## 9. GitHub 설정 및 배포
 
-### 10-1. 다음 단계
+### 9-1. GitHub Personal Access Token 설정
+
+**1. GitHub에서 PAT 생성:**
+- GitHub.com → Settings → Developer settings → Personal access tokens → Tokens (classic)
+- "Generate new token" 클릭
+- 권한 설정: `repo` (전체 저장소 접근 권한)
+- 토큰 생성 후 안전한 곳에 저장
+
+**2. PAT 설정 스크립트 실행:**
+```bash
+# PAT 설정 (토큰 입력 필요)
+npm run setup-pat
+
+# 또는 직접 실행
+./setup-github-pat.sh
+```
+
+**3. GitHub에 Push:**
+```bash
+# PAT를 사용해서 Push
+npm run push
+
+# 또는 직접 실행
+./push-with-pat.sh
+```
+
+### 9-2. Git 기본 명령어
+
+```bash
+# 파일 상태 확인
+git status
+
+# 파일 추가
+git add .
+
+# 커밋 생성
+git commit -m "커밋 메시지"
+
+# 원격 저장소에 Push
+git push origin main
+
+# 변경사항 확인
+git diff
+
+# 커밋 히스토리 확인
+git log --oneline
+```
+
+### 9-3. 보안 주의사항
+
+- **PAT는 안전하게 보관:** `.env` 파일에 저장 (gitignore에 포함됨)
+- **토큰 만료 주기:** 90일마다 갱신 권장
+- **권한 최소화:** 필요한 권한만 부여
+- **토큰 노출 방지:** 공개 저장소에 절대 업로드하지 않기
+
+---
+
+## 10. 문제 해결
+
+### 11-1. 다음 단계
 
 이제 기본적인 개발 환경이 준비되었습니다. 다음을 학습해보세요:
 
@@ -879,7 +939,7 @@ npm info [패키지명]
 5. **상태 관리 (Redux, Zustand 등)**
 6. **API 연동 (axios, fetch 등)**
 
-### 10-2. 학습 자료
+### 11-2. 학습 자료
 
 - [React 공식 문서](https://react.dev/learn)
 - [TypeScript 공식 문서](https://www.typescriptlang.org/docs/)

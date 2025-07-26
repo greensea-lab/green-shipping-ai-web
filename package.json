@@ -34,7 +34,9 @@
     "format": "npx prettier --write src/**/*.{ts,tsx,js,jsx,json,css,md}",
     "format:check": "npx prettier --check src/**/*.{ts,tsx,js,jsx,json,css,md}",
     "type-check": "npx tsc --noEmit",
-    "dev": "npm run lint && npm run format && npm run type-check && npm start"
+    "dev": "npm run lint && npm run format && npm run type-check && npm start",
+    "setup-pat": "./setup-github-pat.sh",
+    "push": "./push-with-pat.sh"
   },
   "eslintConfig": {
     "extends": [
