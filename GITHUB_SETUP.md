@@ -147,18 +147,21 @@ echo "✅ GitHub 저장소 설정 완료!"
 ## 🔧 문제 해결
 
 ### 인증 오류
+
 ```bash
 # Personal Access Token 재설정
 git remote set-url origin https://github.com/greensea-lab/green-shipping-ai-web.git
 ```
 
 ### 브랜치 충돌
+
 ```bash
 # 원격 브랜치와 로컬 브랜치 동기화
 git pull origin main --allow-unrelated-histories
 ```
 
 ### 파일 권한 문제
+
 ```bash
 # .gitignore 확인
 cat .gitignore
@@ -170,6 +173,7 @@ git status
 ## 📝 커밋 메시지 가이드
 
 ### 좋은 커밋 메시지 예시:
+
 ```bash
 git commit -m "feat: Add MyComponent example for beginners
 
@@ -180,6 +184,7 @@ git commit -m "feat: Add MyComponent example for beginners
 ```
 
 ### 커밋 타입:
+
 - `feat`: 새 기능 추가
 - `fix`: 버그 수정
 - `docs`: 문서 수정
@@ -203,4 +208,4 @@ git commit -m "feat: Add MyComponent example for beginners
 
 ---
 
-**💡 Tip:** Personal Access Token은 안전하게 보관하고, 필요시에만 생성하세요! 
+**💡 Tip:** Personal Access Token은 안전하게 보관하고, 필요시에만 생성하세요!
