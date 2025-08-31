@@ -1,8 +1,9 @@
-// src/Simulation.tsx
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import MapView from './components/MapView';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 type LatLng = { lat: number; lng: number };
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
@@ -18,97 +19,178 @@ const colors = {
   ink: '#0b1220',
 };
 
-const styles = {
+const styles: { [key: string]: React.CSSProperties } = {
   page: {
     minHeight: '100vh',
-    background:
-      `radial-gradient(1200px 600px at 50% -220px, #e9f7ff 0%, rgba(233,247,255,0) 60%), ${colors.page}`,
+    background: `radial-gradient(800px 400px at 50% -150px, #e9f7ff 0%, rgba(233,247,255,0) 60%), ${colors.page}`,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   centerWrap: {
-    maxWidth: 1240,
+    width: '100%',
+    maxWidth: '1066px', // 2/3 of 1600px
+    minWidth: '666px', // 2/3 of 1000px
     margin: '0 auto',
-    padding: '44px 20px 80px',
-    minHeight: 'calc(100vh - 0px)',
+    padding: '32px 0 32px', // 2/3 of 48px
     display: 'flex',
-    flexDirection: 'column' as const,
+    flexDirection: 'column',
+    gap: 25, // 2/3 of 38px
+    alignItems: 'center',
     justifyContent: 'center',
-    gap: 22,
   },
-  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: '1.15rem', fontWeight: 900, color: colors.text },
-  subtitle: { color: colors.sub, fontSize: '0.95rem' },
+  header: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 5, // 2/3 of 8px
+    marginBottom: 9, // 2/3 of 14px
+  },
+  title: { fontSize: '1.8rem', fontWeight: 900, color: colors.text, textAlign: 'center' }, // 2/3 of 2.7rem
+  subtitle: { color: colors.sub, fontSize: '0.98rem', textAlign: 'center' }, // 2/3 of 1.47rem
 
   grid: {
+    width: '100%',
     display: 'grid',
-    gridTemplateColumns: '1.15fr 0.85fr',
-    gap: 32,
-    alignItems: 'start',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 29, // 2/3 of 44px
+    alignItems: 'stretch',
+    justifyItems: 'stretch',
+    minHeight: '466px', // 2/3 of 700px
+    maxHeight: '622px', // 2/3 of 933px
   },
   card: {
     background: colors.card,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 18,
-    boxShadow: '0 12px 26px rgba(2,6,23,0.06)',
-    padding: 22,
+    border: `2px solid ${colors.border}`,
+    borderRadius: 16, // 2/3 of 24px
+    boxShadow: '0 7px 16px rgba(2,6,23,0.04)', // 2/3 of 10px/24px
+    padding: '28px 24px', // 2/3 of 42px/37px
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    gap: 16, // 2/3 of 24px
+    height: '100%',
+    minHeight: '426px', // 2/3 of 640px
+    boxSizing: 'border-box',
   },
   cardHeader: {
     display: 'flex',
-    alignItems: 'baseline',
+    alignItems: 'flex-end',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 9, // 2/3 of 13px
   },
-  cardTitle: { fontSize: '1.05rem', fontWeight: 900, color: colors.text },
-  cardSub: { fontSize: '0.92rem', color: colors.sub },
+  cardTitle: { fontSize: '1.07rem', fontWeight: 900, color: colors.text }, // 2/3 of 1.6rem
+  cardSub: { fontSize: '0.89rem', color: colors.sub }, // 2/3 of 1.33rem
 
-  row: { display: 'grid', gridTemplateColumns: '1fr auto', gap: 10, marginBottom: 12 },
+  row: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 80px', // 2/3 of 120px
+    gap: 9, // 2/3 of 13px
+    alignItems: 'center',
+    marginBottom: 9, // 2/3 of 13px
+  },
   input: {
     width: '100%',
-    padding: '0.95rem 1rem',
-    fontSize: '0.95rem',
-    borderRadius: 12,
-    border: `1px solid ${colors.border}`,
+    padding: '0.75rem 0.98rem', // 2/3 of 1.13rem/1.47rem
+    fontSize: '0.96rem', // 2/3 of 1.44rem
+    borderRadius: 8, // 2/3 of 13px
+    border: `2px solid ${colors.border}`,
     background: '#fff',
+    boxSizing: 'border-box',
   },
   cta: {
-    padding: '0.95rem 1.1rem',
-    borderRadius: 12,
+    padding: '0.67rem 1.07rem', // 2/3 of 1rem/1.6rem
+    borderRadius: 8, // 2/3 of 13px
     border: 'none',
     background: colors.blue,
     color: '#fff',
-    fontWeight: 900,
+    fontWeight: 700,
     cursor: 'pointer',
+    fontSize: '0.89rem', // 2/3 of 1.33rem
     whiteSpace: 'nowrap' as const,
   },
-  twoCol: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 },
-  sliderWrap: { marginTop: 4 },
-  primary: {
-    width: '100%',
-    padding: '1.05rem 1.2rem',
-    borderRadius: 14,
+  fuelButton: {
+    display: 'inline-block',
+    padding: '0.58rem 1.07rem', // 2/3 of 0.87rem/1.6rem
+    borderRadius: '7px', // 2/3 of 11px
+    background: colors.blue,
+    color: '#fff',
+    fontWeight: 700,
+    cursor: 'pointer',
+    marginRight: '7px', // 2/3 of 11px
+    fontSize: '0.89rem', // 2/3 of 1.33rem
+    textAlign: 'center' as const,
     border: 'none',
-    background: `linear-gradient(135deg, ${colors.brand}, ${colors.blue})`,
+  },
+  fuelButtonSelected: {
+    display: 'inline-block',
+    padding: '0.58rem 1.07rem',
+    borderRadius: '7px',
+    background: colors.brand,
+    color: '#fff',
+    fontWeight: 700,
+    cursor: 'pointer',
+    marginRight: '7px',
+    fontSize: '0.89rem',
+    textAlign: 'center' as const,
+    border: 'none',
+  },
+  mapBox: {
+    width: '100%',
+    height: '311px', // 2/3 of 467px
+    borderRadius: '11px', // 2/3 of 16px
+    overflow: 'hidden',
+    background: '#f9f9fb',
+    marginTop: '11px', // 2/3 of 16px
+  },
+  empty: {
+    width: '100%',
+    height: '311px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: colors.sub,
+    background: '#f9f9fb',
+    borderRadius: '11px',
+    fontSize: '0.98rem', // 2/3 of 1.47rem
+  },
+  primary: {
+    padding: '0.89rem', // 2/3 of 1.33rem
+    borderRadius: 11, // 2/3 of 16px
+    border: 'none',
+    background: colors.brand,
     color: '#fff',
     fontWeight: 900,
-    fontSize: '1rem',
     cursor: 'pointer',
-    boxShadow: '0 14px 28px rgba(16,185,129,0.28)',
-    marginTop: 10,
-  } as React.CSSProperties,
-  primaryDisabled: { opacity: 0.5, cursor: 'not-allowed' },
-
-  mapBox: { height: 520, borderRadius: 14, overflow: 'hidden' as const },
-  empty: {
-    height: 520,
-    borderRadius: 14,
-    border: `1px dashed ${colors.border}`,
-    background: '#fafcff',
-    display: 'grid',
-    placeItems: 'center',
-    textAlign: 'center' as const,
-    color: colors.sub,
-    padding: '0 20px',
+    marginTop: '14px', // 2/3 of 21px
+    fontSize: '0.98rem', // 2/3 of 1.47rem
+    width: '100%',
+    transition: 'background 0.2s',
+  },
+  primaryDisabled: {
+    background: '#cbd5e1',
+    color: '#fff',
+    cursor: 'not-allowed',
   },
 };
+
+const CustomDateInput = React.forwardRef<HTMLInputElement, React.HTMLProps<HTMLInputElement>>(
+  (props, ref) => (
+    <input
+      {...props}
+      ref={ref}
+      style={{
+        ...styles.input,
+        fontSize: '0.96rem',
+        padding: '0.75rem 0.98rem',
+      }}
+      className="date-picker"
+      readOnly
+    />
+  )
+);
 
 function Simulation(): JSX.Element {
   const navigate = useNavigate();
@@ -118,10 +200,10 @@ function Simulation(): JSX.Element {
   const [departureLatLng, setDepartureLatLng] = useState<LatLng | null>(null);
   const [arrivalLatLng, setArrivalLatLng] = useState<LatLng | null>(null);
 
-  const [speed, setSpeed] = useState<number | ''>('');
-  const [payload, setPayload] = useState<number>(50);
-  const [wind, setWind] = useState<number | ''>('');
-  const [wave, setWave] = useState<number | ''>('');
+  const [departureDate, setDepartureDate] = useState<Date | null>(null);
+  const [arrivalDate, setArrivalDate] = useState<Date | null>(null);
+  const [cargo, setCargo] = useState('');
+  const [selectedFuel, setSelectedFuel] = useState<string>('');
 
   const geocode = async (query: string): Promise<LatLng | null> => {
     try {
@@ -145,38 +227,73 @@ function Simulation(): JSX.Element {
     const coords = await geocode(departure);
     if (coords) setDepartureLatLng(coords);
   };
+
   const handleArrivalConfirm = async () => {
     if (!arrival.trim()) return alert('도착지를 입력하세요.');
     const coords = await geocode(arrival);
     if (coords) setArrivalLatLng(coords);
   };
 
-  const canSimulate = Boolean(departureLatLng && arrivalLatLng);
+  // 필수값 체크: 출발/도착지 위치, 날짜, 적재량, 연료 선택
+  const canSimulate =
+    departureLatLng &&
+    arrivalLatLng &&
+    departure &&
+    arrival &&
+    departureDate &&
+    arrivalDate &&
+    cargo &&
+    selectedFuel;
 
-  const handleSimulation = () => {
-    if (!canSimulate) return alert('출발지와 도착지 위치를 먼저 확인하세요.');
-    navigate('/result', {
-      state: {
-        departure,
-        arrival,
-        speed: Number(speed || 0),
-        loadRate: payload,
-        windSpeed: Number(wind || 0),
-        waveHeight: Number(wave || 0),
-      },
-    });
+  // EI_api 연결
+  const handleSimulation = async () => {
+    if (!canSimulate) return alert('필수 정보를 모두 입력하고 위치를 확인하세요.');
+
+    // 날짜를 yyyy-MM-dd 포맷으로 변환
+    const formatDate = (date: Date | null) =>
+      date ? date.toISOString().slice(0, 10) : '';
+
+    // API 스키마에 맞는 payload
+    const payloadToApi = {
+      origin: departure,
+      dest: arrival,
+      teu_loaded: Number(cargo),
+      fuel: selectedFuel === 'MGO/MDO' ? 'MGO' : selectedFuel, // API는 MGO만 인식
+      departure_date: formatDate(departureDate),
+      arrival_date: formatDate(arrivalDate),
+    };
+
+    try {
+      const res = await axios.post('http://localhost:8000/api/v2/ei', payloadToApi);
+
+      // 결과 페이지로 이동하며 응답값 전달
+      navigate('/result', {
+        state: {
+          departure,
+          arrival,
+          departureDate: formatDate(departureDate),
+          arrivalDate: formatDate(arrivalDate),
+          cargo,
+          selectedFuel,
+          apiResult: res.data,
+        },
+      });
+    } catch (err: any) {
+      alert(
+        '시뮬레이션 API 호출에 실패했습니다.\n' +
+        (err?.response?.data?.detail || err.message)
+      );
+      console.error(err);
+    }
   };
 
   return (
     <div style={styles.page}>
       <div style={styles.centerWrap}>
         <div style={styles.header}>
-          <div>
-            <div style={styles.title}>시뮬레이션</div>
-            <div style={styles.subtitle}>조건 입력 → 경로 확인 → 결과</div>
-          </div>
+          <div style={styles.title}>시뮬레이션</div>
+          <div style={styles.subtitle}>조건 입력 → 경로 확인 → 결과</div>
         </div>
-
         <div style={styles.grid}>
           {/* 좌측 카드 */}
           <div style={styles.card}>
@@ -184,109 +301,126 @@ function Simulation(): JSX.Element {
               <div style={styles.cardTitle}>🚢 운항 조건 입력</div>
               <div style={styles.cardSub}>필수 항목을 입력하세요</div>
             </div>
-
             <div style={styles.row}>
               <input
                 type="text"
                 placeholder="출발지 (예: 부산항)"
                 value={departure}
-                onChange={(e) => setDeparture(e.target.value)}
+                onChange={e => setDeparture(e.target.value)}
                 style={styles.input}
               />
-              <button type="button" style={styles.cta} onClick={handleDepartureConfirm}>
+              <button
+                type="button"
+                style={styles.cta}
+                onClick={handleDepartureConfirm}
+              >
                 📍 확인
               </button>
             </div>
-
             <div style={styles.row}>
               <input
                 type="text"
                 placeholder="도착지 (예: 도쿄항)"
                 value={arrival}
-                onChange={(e) => setArrival(e.target.value)}
+                onChange={e => setArrival(e.target.value)}
                 style={styles.input}
               />
-              <button type="button" style={styles.cta} onClick={handleArrivalConfirm}>
+              <button
+                type="button"
+                style={styles.cta}
+                onClick={handleArrivalConfirm}
+              >
                 📍 확인
               </button>
             </div>
-
-            <div style={styles.twoCol}>
+            <div>
+              <div style={{ marginBottom: '5px', fontWeight: 700, fontSize: '0.89rem' }}>출발 날짜</div>
+              <DatePicker
+                selected={departureDate}
+                onChange={setDepartureDate}
+                dateFormat="yyyy-MM-dd"
+                className="date-picker"
+                popperPlacement="bottom"
+                customInput={<CustomDateInput />}
+              />
+            </div>
+            <div>
+              <div style={{ marginBottom: '5px', fontWeight: 700, fontSize: '0.89rem' }}>도착 날짜</div>
+              <DatePicker
+                selected={arrivalDate}
+                onChange={setArrivalDate}
+                dateFormat="yyyy-MM-dd"
+                className="date-picker"
+                popperPlacement="bottom"
+                customInput={<CustomDateInput />}
+              />
+            </div>
+            <div>
+              <div style={{ marginBottom: '5px', fontWeight: 700, fontSize: '0.89rem' }}>적재량 (TEU)</div>
+              <input
+                type="number"
+                min={1}
+                step={1}
+                value={cargo}
+                onChange={e => setCargo(e.target.value)}
+                placeholder="예: 1023"
+                style={styles.input}
+              />
+            </div>
+            <div>
+              <div style={{ marginBottom: '5px', fontWeight: 700, fontSize: '0.89rem' }}>연료 선택</div>
               <div>
-                <div>속도 (kn)</div>
-                <input
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  placeholder="예: 14"
-                  value={speed}
-                  onChange={(e) => setSpeed(e.target.value === '' ? '' : Number(e.target.value))}
-                  style={styles.input}
-                />
-              </div>
-              <div>
-                <div>적재율 (%)</div>
-                <div style={styles.sliderWrap}>
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={payload}
-                    onChange={(e) => setPayload(Number(e.target.value))}
-                    style={{ width: '100%' }}
-                  />
-                  <div style={{ textAlign: 'right', color: colors.sub, fontWeight: 800 }}>
-                    {payload}%
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedFuel('HFO')}
+                  style={selectedFuel === 'HFO' ? styles.fuelButtonSelected : styles.fuelButton}
+                >
+                  HFO
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedFuel('MGO/MDO')}
+                  style={selectedFuel === 'MGO/MDO' ? styles.fuelButtonSelected : styles.fuelButton}
+                >
+                  MGO/MDO
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedFuel('LNG')}
+                  style={selectedFuel === 'LNG' ? styles.fuelButtonSelected : styles.fuelButton}
+                >
+                  LNG
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedFuel('Methanol')}
+                  style={selectedFuel === 'Methanol' ? styles.fuelButtonSelected : styles.fuelButton}
+                >
+                  Methanol
+                </button>
               </div>
             </div>
-
-            <div style={styles.twoCol}>
-              <div>
-                <div>풍속 (m/s)</div>
-                <input
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  placeholder="예: 8"
-                  value={wind}
-                  onChange={(e) => setWind(e.target.value === '' ? '' : Number(e.target.value))}
-                  style={styles.input}
-                />
-              </div>
-              <div>
-                <div>파고 (m)</div>
-                <input
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  placeholder="예: 1.5"
-                  value={wave}
-                  onChange={(e) => setWave(e.target.value === '' ? '' : Number(e.target.value))}
-                  style={styles.input}
-                />
-              </div>
-            </div>
-
             <button
               type="button"
               onClick={handleSimulation}
-              style={{ ...styles.primary, ...(canSimulate ? {} : styles.primaryDisabled) }}
+              style={{
+                ...styles.primary,
+                ...(canSimulate ? {} : styles.primaryDisabled),
+              }}
               disabled={!canSimulate}
             >
               시뮬레이션 실행 ▶
             </button>
           </div>
-
           {/* 우측 카드 */}
           <div style={styles.card}>
             <div style={styles.cardHeader}>
               <div style={styles.cardTitle}>🗺 경로 미리보기</div>
-              <div style={styles.cardSub}>출발·도착지 확인 후 지도가 표시됩니다</div>
+              <div style={styles.cardSub}>
+                출발·도착지 확인 후 지도가 표시됩니다
+              </div>
             </div>
-
-            {departureLatLng || arrivalLatLng ? (
+            {(departureLatLng || arrivalLatLng) ? (
               <div style={styles.mapBox}>
                 <MapView
                   departure={departureLatLng}
