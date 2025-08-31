@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import MapView from './components/MapView';
@@ -205,6 +205,13 @@ function Simulation(): JSX.Element {
   const [cargo, setCargo] = useState('');
   const [selectedFuel, setSelectedFuel] = useState<string>('');
 
+  // 경로계산 결과 상태 추가
+  const [routeSummary, setRouteSummary] = useState<null | {
+    origin: { name: string; lon: number; lat: number };
+    dest: { name: string; lon: number; lat: number };
+    distance_km: number;
+  }>(null);
+
   const geocode = async (query: string): Promise<LatLng | null> => {
     try {
       const { data } = await axios.get(NOMINATIM_URL, {
@@ -234,6 +241,34 @@ function Simulation(): JSX.Element {
     if (coords) setArrivalLatLng(coords);
   };
 
+  // 출발/도착지 명이 둘 다 있고 좌표도 있으면 경로계산 API 호출
+  useEffect(() => {
+    const fetchRoute = async () => {
+      if (!(departure && arrival)) {
+        setRouteSummary(null);
+        return;
+      }
+      try {
+        const res = await axios.get('http://localhost:8000/route', {
+          params: {
+            origin: departure,
+            dest: arrival,
+          },
+        });
+        if (res.data?.summary) {
+          setRouteSummary(res.data.summary);
+        } else {
+          setRouteSummary(null);
+        }
+      } catch (err) {
+        setRouteSummary(null);
+      }
+    };
+    if (departureLatLng && arrivalLatLng) {
+      fetchRoute();
+    }
+  }, [departureLatLng, arrivalLatLng, departure, arrival]);
+
   // 필수값 체크: 출발/도착지 위치, 날짜, 적재량, 연료 선택
   const canSimulate =
     departureLatLng &&
@@ -245,7 +280,7 @@ function Simulation(): JSX.Element {
     cargo &&
     selectedFuel;
 
-  // EI_api 연결
+  // EI_api 연결 (기존 코드 그대로)
   const handleSimulation = async () => {
     if (!canSimulate) return alert('필수 정보를 모두 입력하고 위치를 확인하세요.');
 
@@ -400,6 +435,12 @@ function Simulation(): JSX.Element {
                 </button>
               </div>
             </div>
+            {/* 경로계산 결과 표시 */}
+            {routeSummary && (
+              <div style={{ marginTop: '12px', color: colors.blue, fontWeight: 700 }}>
+                <span>경로 거리: {routeSummary.distance_km} km</span>
+              </div>
+            )}
             <button
               type="button"
               onClick={handleSimulation}
