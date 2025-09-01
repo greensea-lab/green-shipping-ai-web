@@ -231,13 +231,7 @@ function Result(): JSX.Element {
     datasets: [
       {
         label: '예상 탄소 배출량 (kg)',
-        data: [
-          CO2_FIXED * 0.1,
-          CO2_FIXED * 0.3,
-          CO2_FIXED * 0.6,
-          CO2_FIXED * 0.85,
-          CO2_FIXED,
-        ],
+        data: [1740, 1750, 1767.077, 1787, 1802], // 고정된 총 배출량 값
         backgroundColor: '#2979ff',
         borderRadius: 4,
       },
@@ -340,14 +334,33 @@ function Result(): JSX.Element {
           <Bar
             data={chartData}
             options={{
-              plugins: { legend: { display: false } },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label: (context) => {
+                      const fixedValues = [1740, 1750, 1767.077, 1787, 1802];
+                      const idx = context.dataIndex;
+                      const val = fixedValues[idx];
+                      return `총 탄소배출량: ${val} kg/CO2`;
+                    },
+                  },
+                },
+              },
               responsive: true,
               scales: {
                 x: { grid: { display: false } },
-                y: { grid: { color: '#eef2f7' } },
+                y: {
+                  grid: { color: '#eef2f7' },
+                  min: 1700,       // ✅ 시작값을 1700으로 고정
+                  ticks: {
+                    stepSize: 10,  // ✅ 10 단위씩 증가
+                  },
+                },
               },
             }}
           />
+
 
           {/* 버튼 */}
           <div style={S.btnRow}>

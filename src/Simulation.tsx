@@ -139,7 +139,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   mapBox: {
     width: '100%',
-    height: '220px',
+    height: '440px',
     borderRadius: '8px',
     overflow: 'hidden',
     background: '#f9f9fb',
@@ -147,7 +147,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   empty: {
     width: '100%',
-    height: '220px',
+    height: '440px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

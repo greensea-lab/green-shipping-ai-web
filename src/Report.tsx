@@ -32,7 +32,6 @@ const colors = {
   success: '#10b981',
   aiBoxBg: '#e7f3ff',
 
-  // Chat
   kakaoYellow: '#fee500',
   bubbleGray: '#ffffff',
   bubbleShadow: '0 1px 3px rgba(2,6,23,0.06)',
@@ -50,7 +49,7 @@ const styles: Record<string, React.CSSProperties> = {
   header: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'flex-start', // 우측 버튼 삭제했으므로 flex-start
+    justifyContent: 'flex-start',
     marginBottom: 16,
   },
   leftHead: { display: 'flex', alignItems: 'center', gap: 12 },
@@ -122,11 +121,10 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
   },
 
-  /** ===== Kakao-like Chat UI ===== */
   chatWrap: {
     display: 'flex',
     flexDirection: 'column',
-    height: 360,                // 카드 안에서 적절한 높이
+    height: 360,
     border: `1px solid ${colors.border}`,
     borderRadius: 12,
     overflow: 'hidden',
@@ -229,30 +227,31 @@ const Report: React.FC = () => {
 
   const shellRef = useRef<HTMLDivElement | null>(null);
 
-  /** ====== Viewer(좌측) ====== */
+  // 현재 표시할 PDF 파일 (기본: reportUrl 또는 ESG_REPORT.pdf)
+  const [reportSrc, setReportSrc] = useState<string>(
+    data.reportUrl ? data.reportUrl : '/ESG_REPORT.pdf'
+  );
+
+  // reportUrl이 바뀌면 동기화
+  useEffect(() => {
+    if (data.reportUrl) setReportSrc(data.reportUrl);
+  }, [data.reportUrl]);
+
+  // iframe 렌더
   useEffect(() => {
     const el = shellRef.current;
     if (!el) return;
     el.innerHTML = '';
 
-    if (data.reportUrl) {
-      const iframe = document.createElement('iframe');
-      iframe.src = data.reportUrl;
-      iframe.width = '100%';
-      iframe.height = '100%';
-      iframe.style.border = '0';
-      el.appendChild(iframe);
-    } else {
-      // 리포트 URL이 없으면 안내 문구 유지(원 코드 유지)
-      const tip = document.createElement('div');
-      tip.innerHTML =
-        '여기에 외부 보고서가 표시됩니다.<br/>다른 서버에서 받아온 <b>iframe</b> 또는 <b>HTML</b>을 이 컨테이너(<code>#external-report-view</code>)에 마운트하세요.';
-      tip.style.color = colors.sub;
-      el.appendChild(tip);
-    }
-  }, [data.reportUrl]);
+    const iframe = document.createElement('iframe');
+    iframe.src = reportSrc; // public/ESG_REPORT*.pdf
+    iframe.width = '100%';
+    iframe.height = '100%';
+    iframe.style.border = '0';
+    el.appendChild(iframe);
+  }, [reportSrc]);
 
-  /** ====== Kakao-like Chat(우측 하단) ====== */
+  /** ====== Chat ====== */
   const [msgs, setMsgs] = useState<ChatMsg[]>([
     {
       id: 'm1',
@@ -264,7 +263,12 @@ const Report: React.FC = () => {
   const [input, setInput] = useState('');
   const bodyRef = useRef<HTMLDivElement | null>(null);
 
-  // 전송
+  // 트리거 문구들
+  const TRIGGER_PDF2 =
+    '2025년 9월 5일 시드니에서 출발할 건데 그때 날씨 어때?';
+  const TRIGGER_PDF3 =
+    '오클랜드항 입항 시 주의사항을 보고서에 반영해줘';
+
   const send = () => {
     const text = input.trim();
     if (!text) return;
@@ -274,8 +278,34 @@ const Report: React.FC = () => {
     setMsgs((m) => [...m, userMsg]);
     setInput('');
 
-    // 아주 간단한 데모 응답(실제 AI 연동 X)
     setTimeout(() => {
+      // 1) PDF2 전환 트리거
+      if (text.includes(TRIGGER_PDF2)) {
+        setReportSrc('/ESG_REPORT3.pdf');
+        const aiMsg: ChatMsg = {
+          id: crypto.randomUUID(),
+          role: 'ai',
+          text: '확인했습니다, 좌측을 봐주십시오',
+          time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMsgs((m) => [...m, aiMsg]);
+        return;
+      }
+
+      // 2) ✅ 새 요구: PDF3 전환 트리거
+      if (text.includes(TRIGGER_PDF3)) {
+        setReportSrc('/ESG_REPORT4.pdf');
+        const aiMsg: ChatMsg = {
+          id: crypto.randomUUID(),
+          role: 'ai',
+          text: '보고서에 반영했습니다.',
+          time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMsgs((m) => [...m, aiMsg]);
+        return;
+      }
+
+      // 기본 응답
       const replyText =
         text.includes('배출') || text.toLowerCase().includes('co2')
           ? '이번 항차의 총 배출량은 1767.077 kg/CO2로 집계되어 있어요.'
@@ -290,10 +320,9 @@ const Report: React.FC = () => {
         time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
       };
       setMsgs((m) => [...m, aiMsg]);
-    }, 450);
+    }, 350);
   };
 
-  // Enter로 전송
   const onKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -327,7 +356,7 @@ const Report: React.FC = () => {
               <div style={styles.btnRow}>
                 <button
                   style={styles.btn}
-                  onClick={() => alert('다운로드는 외부 보고서 서버와 연동하세요.')}
+                  onClick={() => window.open(reportSrc, '_blank')}
                 >
                   다운로드
                 </button>
@@ -370,7 +399,7 @@ const Report: React.FC = () => {
               </div>
               <hr style={styles.hr} />
 
-              {/* ✅ 카톡 스타일 대화 박스 */}
+              {/* 카톡 스타일 대화 박스 */}
               <div style={styles.chatWrap}>
                 <div style={styles.chatHead}>오픈형 AI 채팅</div>
 

@@ -372,8 +372,8 @@ function Home(): JSX.Element {
         {/* 하단 특징 */}
         <div style={C.features}>
           <div style={C.featureCard}>
-            <div style={C.featureTitle}>실시간 타일 레이어</div>
-            <div style={C.featureDesc}>OpenWeather 타일로 바람/기압/온도/강수/파고를 한 번에 확인하고, 겹쳐 보며 비교합니다.</div>
+            <div style={C.featureTitle}>실시간 기상 리스크 파악</div>
+            <div style={C.featureDesc}>기상 리스크를 미리 파악함으로써 운항 전 항로 의사결정을 지원합니다.</div>
           </div>
           <div style={C.featureCard}>
             <div style={C.featureTitle}>원클릭 시뮬레이션</div>
