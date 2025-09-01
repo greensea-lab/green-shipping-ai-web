@@ -1,3 +1,4 @@
+// src/Result.tsx
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Bar } from 'react-chartjs-2';
@@ -16,10 +17,10 @@ interface RouteState {
   departure: string;
   arrival: string;
   speed: number;
-  loadRate: number;
-  cargo: string; // TEU 정보
-  departureDate: Date | string; // 날짜정보
-  arrivalDate: Date | string;   // 날짜정보
+  loadRate: number;              // 사용 안 하지만 타입은 유지
+  cargo: string;                 // TEU
+  departureDate: Date | string;
+  arrivalDate: Date | string;
 }
 
 const COLORS = {
@@ -206,7 +207,7 @@ function formatDate(date: Date | string | undefined): string {
   try {
     if (typeof date === 'string') {
       const d = new Date(date);
-      if (isNaN(d.getTime())) return date; // if plain string, show as is
+      if (isNaN(d.getTime())) return date;
       return d.toLocaleDateString();
     }
     return date.toLocaleDateString();
@@ -220,32 +221,23 @@ function Result(): JSX.Element {
   const navigate = useNavigate();
   const data = location.state as RouteState | null;
 
-  const estimateCO2 = ({
-                         speed,
-                         loadRate,
-                       }: Pick<RouteState, 'speed' | 'loadRate'>): string => {
-    const base = 2.7;
-    const val =
-      base * (1 + speed / 100) * (loadRate / 100);
-    return val.toFixed(2);
-  };
-
-  const co2 = data ? estimateCO2(data) : null;
+  // 고정 값
+  const CO2_FIXED = 0.101;         // kg/km
+  const SPEED_FIXED = 12;          // kn
+  const co2Text = CO2_FIXED.toFixed(3);
 
   const chartData = {
     labels: ['속도 10', '속도 11', '속도 12', '속도 13', '속도 14'],
     datasets: [
       {
         label: '예상 탄소 배출량 (kg)',
-        data: data
-          ? [
-            Number(co2) * 0.1,
-            Number(co2) * 0.3,
-            Number(co2) * 0.6,
-            Number(co2) * 0.85,
-            Number(co2),
-          ]
-          : [],
+        data: [
+          CO2_FIXED * 0.1,
+          CO2_FIXED * 0.3,
+          CO2_FIXED * 0.6,
+          CO2_FIXED * 0.85,
+          CO2_FIXED,
+        ],
         backgroundColor: '#2979ff',
         borderRadius: 4,
       },
@@ -263,20 +255,22 @@ function Result(): JSX.Element {
         </div>
 
         <div style={S.card}>
-          {/* 메트릭 카드 */}
+          {/* 메트릭 카드: 적재율/풍속·파고 제거, 적재량만 표시 */}
           {data && (
             <div style={S.metrics}>
               <div style={S.metric}>
                 <div style={S.metricLabel}>예상 탄소배출 강도</div>
-                <div style={S.metricValue}>{co2} kg/km</div>
+                <div style={S.metricValue}>{co2Text} kg/km</div>
               </div>
               <div style={S.metric}>
                 <div style={S.metricLabel}>평균 속도</div>
-                <div style={S.metricValue}>{data.speed} kn</div>
+                <div style={S.metricValue}>{SPEED_FIXED} kn</div>
               </div>
               <div style={S.metric}>
                 <div style={S.metricLabel}>적재량</div>
-                <div style={S.metricValue}>{data.cargo ? `${data.cargo} TEU` : '-'}</div>
+                <div style={S.metricValue}>
+                  {data.cargo ? `${data.cargo} TEU` : '-'}
+                </div>
               </div>
               <div style={S.metric}>
                 <div style={S.metricLabel}>출발/도착 날짜</div>
@@ -290,12 +284,8 @@ function Result(): JSX.Element {
           {/* 요약 */}
           {data ? (
             <div style={{ marginTop: 8, color: COLORS.text, lineHeight: 1.5, fontSize: '0.9rem' }}>
-              <div>
-                <b>출발지:</b> {data.departure}
-              </div>
-              <div>
-                <b>도착지:</b> {data.arrival}
-              </div>
+              <div><b>출발지:</b> {data.departure}</div>
+              <div><b>도착지:</b> {data.arrival}</div>
             </div>
           ) : (
             <p style={{ color: 'red', marginTop: 8, fontSize: '0.9rem' }}>
@@ -305,49 +295,44 @@ function Result(): JSX.Element {
 
           <hr style={S.hr} />
 
-          {/* 배너 */}
+          {/* 하단 배너: 총 배출량 고정 */}
           {data && (
             <div style={S.infoBanner}>
-              🌿 <b>예상 배출 강도:</b>{' '}
-              <span style={{ color: COLORS.accent }}>{co2} kg/km</span>
+              🌿 <b>예상 총 탄소배출량:</b>{' '}
+              <span style={{ color: COLORS.accent }}>1767.077 kg/CO2</span>
               <div style={{ color: COLORS.sub, marginTop: 2, fontSize: '0.8rem' }}>
-                ※ 단순 예측 기준으로, 실제 배출 강도는 항로/기상/운항 조건에 따라
-                달라질 수 있습니다.
+                ※ 단순 예측 기준으로, 실제 배출량은 항로/기상/운항 조건에 따라 달라질 수 있습니다.
               </div>
             </div>
           )}
 
-          {/* 추천 항로 (외부 임베드 전용 칸) */}
+          {/* 추천 항로 섹션 + 이미지 임베드 */}
           <div style={S.sectionHead}>
             <div style={S.sectionTitle}>🧭 추천 항로</div>
             <div style={S.sectionDesc}>
-              아래 영역은 <b>외부 서버</b>에서 제공하는 지도를 임베드하는
-              자리입니다.
+              아래 영역은 <b>외부 서버</b>에서 제공하는 지도를 임베드하는 자리입니다.
             </div>
           </div>
 
-          {/* 간단 범례 */}
           <div style={S.legendRow}>
-            <span style={S.chip}>
-              <span style={dot(COLORS.brand)} /> 추천 경로
-            </span>
-            <span style={S.chip}>
-              <span style={dot(COLORS.blue)} /> 대체 경로
-            </span>
-            <span style={S.chip}>
-              <span style={dot('#f59e0b')} /> 기상 주의
-            </span>
+            <span style={S.chip}><span style={dot(COLORS.brand)} /> 추천 경로</span>
+            <span style={S.chip}><span style={dot(COLORS.blue)} /> 대체 경로</span>
+            <span style={S.chip}><span style={dot('#f59e0b')} /> 기상 주의</span>
           </div>
 
-          {/* 임베드 셸 */}
           <div style={S.embedShell}>
             <div style={S.embedTopBar}>
               <div style={S.embedTopLabel}>GreenShipping 경로</div>
-              <div style={S.embedTopStatus}>
-                <div style={S.embedTopFill} />
-              </div>
+              <div style={S.embedTopStatus}><div style={S.embedTopFill} /></div>
             </div>
-            <div id="recommended-route-embed" style={S.embedBody} />
+            {/* public/photo.png를 자연스럽게 채움 */}
+            <div id="recommended-route-embed" style={{ ...S.embedBody, display: 'block', padding: 0 }}>
+              <img
+                src="/photo.png"
+                alt="GreenShipping 경로 미리보기"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            </div>
           </div>
 
           {/* 그래프 */}

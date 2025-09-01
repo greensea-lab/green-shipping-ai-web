@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import MapView from './components/MapView';
@@ -22,7 +22,7 @@ const colors = {
 const styles: { [key: string]: React.CSSProperties } = {
   page: {
     minHeight: '100vh',
-    background: `radial-gradient(800px 400px at 50% -150px, #e9f7ff 0%, rgba(233,247,255,0) 60%), ${colors.page}`,
+    background: `radial-gradient(600px 300px at 50% -100px, #e9f7ff 0%, rgba(233,247,255,0) 60%), ${colors.page}`,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -30,13 +30,13 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   centerWrap: {
     width: '100%',
-    maxWidth: '1066px', // 2/3 of 1600px
-    minWidth: '666px', // 2/3 of 1000px
+    maxWidth: '1000px', // 더 작게!
+    minWidth: '500px',
     margin: '0 auto',
-    padding: '32px 0 32px', // 2/3 of 48px
+    padding: '24px 0 24px',
     display: 'flex',
     flexDirection: 'column',
-    gap: 25, // 2/3 of 38px
+    gap: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -45,127 +45,127 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: 5, // 2/3 of 8px
-    marginBottom: 9, // 2/3 of 14px
+    gap: 6,
+    marginBottom: 10,
   },
-  title: { fontSize: '1.8rem', fontWeight: 900, color: colors.text, textAlign: 'center' }, // 2/3 of 2.7rem
-  subtitle: { color: colors.sub, fontSize: '0.98rem', textAlign: 'center' }, // 2/3 of 1.47rem
+  title: { fontSize: '1.4rem', fontWeight: 900, color: colors.text, textAlign: 'center' },
+  subtitle: { color: colors.sub, fontSize: '0.95rem', textAlign: 'center' },
 
   grid: {
     width: '100%',
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
-    gap: 29, // 2/3 of 44px
+    gap: 20,
     alignItems: 'stretch',
     justifyItems: 'stretch',
-    minHeight: '466px', // 2/3 of 700px
-    maxHeight: '622px', // 2/3 of 933px
+    minHeight: '340px',
+    maxHeight: '480px',
   },
   card: {
     background: colors.card,
-    border: `2px solid ${colors.border}`,
-    borderRadius: 16, // 2/3 of 24px
-    boxShadow: '0 7px 16px rgba(2,6,23,0.04)', // 2/3 of 10px/24px
-    padding: '28px 24px', // 2/3 of 42px/37px
+    border: `1px solid ${colors.border}`,
+    borderRadius: 12,
+    boxShadow: '0 6px 15px rgba(2,6,23,0.04)',
+    padding: '18px 16px',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'flex-start',
-    gap: 16, // 2/3 of 24px
+    gap: 12,
     height: '100%',
-    minHeight: '426px', // 2/3 of 640px
+    minHeight: '260px',
     boxSizing: 'border-box',
   },
   cardHeader: {
     display: 'flex',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-    marginBottom: 9, // 2/3 of 13px
+    marginBottom: 7,
   },
-  cardTitle: { fontSize: '1.07rem', fontWeight: 900, color: colors.text }, // 2/3 of 1.6rem
-  cardSub: { fontSize: '0.89rem', color: colors.sub }, // 2/3 of 1.33rem
+  cardTitle: { fontSize: '1rem', fontWeight: 900, color: colors.text },
+  cardSub: { fontSize: '0.9rem', color: colors.sub },
 
   row: {
     display: 'grid',
-    gridTemplateColumns: '1fr 80px', // 2/3 of 120px
-    gap: 9, // 2/3 of 13px
+    gridTemplateColumns: '1fr 60px',
+    gap: 7,
     alignItems: 'center',
-    marginBottom: 9, // 2/3 of 13px
+    marginBottom: 7,
   },
   input: {
     width: '100%',
-    padding: '0.75rem 0.98rem', // 2/3 of 1.13rem/1.47rem
-    fontSize: '0.96rem', // 2/3 of 1.44rem
-    borderRadius: 8, // 2/3 of 13px
-    border: `2px solid ${colors.border}`,
+    padding: '0.55rem 0.8rem',
+    fontSize: '0.9rem',
+    borderRadius: 7,
+    border: `1px solid ${colors.border}`,
     background: '#fff',
     boxSizing: 'border-box',
   },
   cta: {
-    padding: '0.67rem 1.07rem', // 2/3 of 1rem/1.6rem
-    borderRadius: 8, // 2/3 of 13px
+    padding: '0.5rem 0.8rem',
+    borderRadius: 7,
     border: 'none',
     background: colors.blue,
     color: '#fff',
     fontWeight: 700,
     cursor: 'pointer',
-    fontSize: '0.89rem', // 2/3 of 1.33rem
+    fontSize: '0.85rem',
     whiteSpace: 'nowrap' as const,
   },
   fuelButton: {
     display: 'inline-block',
-    padding: '0.58rem 1.07rem', // 2/3 of 0.87rem/1.6rem
-    borderRadius: '7px', // 2/3 of 11px
+    padding: '0.45rem 0.9rem',
+    borderRadius: '6px',
     background: colors.blue,
     color: '#fff',
     fontWeight: 700,
     cursor: 'pointer',
-    marginRight: '7px', // 2/3 of 11px
-    fontSize: '0.89rem', // 2/3 of 1.33rem
+    marginRight: '6px',
+    fontSize: '0.85rem',
     textAlign: 'center' as const,
     border: 'none',
   },
   fuelButtonSelected: {
     display: 'inline-block',
-    padding: '0.58rem 1.07rem',
-    borderRadius: '7px',
+    padding: '0.45rem 0.9rem',
+    borderRadius: '6px',
     background: colors.brand,
     color: '#fff',
     fontWeight: 700,
     cursor: 'pointer',
-    marginRight: '7px',
-    fontSize: '0.89rem',
+    marginRight: '6px',
+    fontSize: '0.85rem',
     textAlign: 'center' as const,
     border: 'none',
   },
   mapBox: {
     width: '100%',
-    height: '311px', // 2/3 of 467px
-    borderRadius: '11px', // 2/3 of 16px
+    height: '220px',
+    borderRadius: '8px',
     overflow: 'hidden',
     background: '#f9f9fb',
-    marginTop: '11px', // 2/3 of 16px
+    marginTop: '8px',
   },
   empty: {
     width: '100%',
-    height: '311px',
+    height: '220px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     color: colors.sub,
     background: '#f9f9fb',
-    borderRadius: '11px',
-    fontSize: '0.98rem', // 2/3 of 1.47rem
+    borderRadius: '8px',
+    fontSize: '0.95rem',
   },
   primary: {
-    padding: '0.89rem', // 2/3 of 1.33rem
-    borderRadius: 11, // 2/3 of 16px
+    padding: '0.7rem',
+    borderRadius: 9,
     border: 'none',
     background: colors.brand,
     color: '#fff',
     fontWeight: 900,
     cursor: 'pointer',
-    marginTop: '14px', // 2/3 of 21px
-    fontSize: '0.98rem', // 2/3 of 1.47rem
+    marginTop: '12px',
+    fontSize: '0.95rem',
     width: '100%',
     transition: 'background 0.2s',
   },
@@ -183,8 +183,8 @@ const CustomDateInput = React.forwardRef<HTMLInputElement, React.HTMLProps<HTMLI
       ref={ref}
       style={{
         ...styles.input,
-        fontSize: '0.96rem',
-        padding: '0.75rem 0.98rem',
+        fontSize: '0.9rem',
+        padding: '0.55rem 0.8rem',
       }}
       className="date-picker"
       readOnly
@@ -204,13 +204,6 @@ function Simulation(): JSX.Element {
   const [arrivalDate, setArrivalDate] = useState<Date | null>(null);
   const [cargo, setCargo] = useState('');
   const [selectedFuel, setSelectedFuel] = useState<string>('');
-
-  // 경로계산 결과 상태 추가
-  const [routeSummary, setRouteSummary] = useState<null | {
-    origin: { name: string; lon: number; lat: number };
-    dest: { name: string; lon: number; lat: number };
-    distance_km: number;
-  }>(null);
 
   const geocode = async (query: string): Promise<LatLng | null> => {
     try {
@@ -241,85 +234,20 @@ function Simulation(): JSX.Element {
     if (coords) setArrivalLatLng(coords);
   };
 
-  // 출발/도착지 명이 둘 다 있고 좌표도 있으면 경로계산 API 호출
-  useEffect(() => {
-    const fetchRoute = async () => {
-      if (!(departure && arrival)) {
-        setRouteSummary(null);
-        return;
-      }
-      try {
-        const res = await axios.get('http://localhost:8000/route', {
-          params: {
-            origin: departure,
-            dest: arrival,
-          },
-        });
-        if (res.data?.summary) {
-          setRouteSummary(res.data.summary);
-        } else {
-          setRouteSummary(null);
-        }
-      } catch (err) {
-        setRouteSummary(null);
-      }
-    };
-    if (departureLatLng && arrivalLatLng) {
-      fetchRoute();
-    }
-  }, [departureLatLng, arrivalLatLng, departure, arrival]);
+  const canSimulate = Boolean(departureLatLng && arrivalLatLng);
 
-  // 필수값 체크: 출발/도착지 위치, 날짜, 적재량, 연료 선택
-  const canSimulate =
-    departureLatLng &&
-    arrivalLatLng &&
-    departure &&
-    arrival &&
-    departureDate &&
-    arrivalDate &&
-    cargo &&
-    selectedFuel;
-
-  // EI_api 연결 (기존 코드 그대로)
-  const handleSimulation = async () => {
-    if (!canSimulate) return alert('필수 정보를 모두 입력하고 위치를 확인하세요.');
-
-    // 날짜를 yyyy-MM-dd 포맷으로 변환
-    const formatDate = (date: Date | null) =>
-      date ? date.toISOString().slice(0, 10) : '';
-
-    // API 스키마에 맞는 payload
-    const payloadToApi = {
-      origin: departure,
-      dest: arrival,
-      teu_loaded: Number(cargo),
-      fuel: selectedFuel === 'MGO/MDO' ? 'MGO' : selectedFuel, // API는 MGO만 인식
-      departure_date: formatDate(departureDate),
-      arrival_date: formatDate(arrivalDate),
-    };
-
-    try {
-      const res = await axios.post('http://localhost:8000/api/v2/ei', payloadToApi);
-
-      // 결과 페이지로 이동하며 응답값 전달
-      navigate('/result', {
-        state: {
-          departure,
-          arrival,
-          departureDate: formatDate(departureDate),
-          arrivalDate: formatDate(arrivalDate),
-          cargo,
-          selectedFuel,
-          apiResult: res.data,
-        },
-      });
-    } catch (err: any) {
-      alert(
-        '시뮬레이션 API 호출에 실패했습니다.\n' +
-        (err?.response?.data?.detail || err.message)
-      );
-      console.error(err);
-    }
+  const handleSimulation = () => {
+    if (!canSimulate) return alert('출발지와 도착지 위치를 먼저 확인하세요.');
+    navigate('/result', {
+      state: {
+        departure,
+        arrival,
+        departureDate,
+        arrivalDate,
+        cargo,
+        selectedFuel,
+      },
+    });
   };
 
   return (
@@ -369,7 +297,7 @@ function Simulation(): JSX.Element {
               </button>
             </div>
             <div>
-              <div style={{ marginBottom: '5px', fontWeight: 700, fontSize: '0.89rem' }}>출발 날짜</div>
+              <div style={{ marginBottom: '5px', fontWeight: 700, fontSize: '0.9rem' }}>출발 날짜</div>
               <DatePicker
                 selected={departureDate}
                 onChange={setDepartureDate}
@@ -380,7 +308,7 @@ function Simulation(): JSX.Element {
               />
             </div>
             <div>
-              <div style={{ marginBottom: '5px', fontWeight: 700, fontSize: '0.89rem' }}>도착 날짜</div>
+              <div style={{ marginBottom: '5px', fontWeight: 700, fontSize: '0.9rem' }}>도착 날짜</div>
               <DatePicker
                 selected={arrivalDate}
                 onChange={setArrivalDate}
@@ -391,19 +319,17 @@ function Simulation(): JSX.Element {
               />
             </div>
             <div>
-              <div style={{ marginBottom: '5px', fontWeight: 700, fontSize: '0.89rem' }}>적재량 (TEU)</div>
+              <div style={{ marginBottom: '5px', fontWeight: 700, fontSize: '0.9rem' }}>적재량 (ex_1023):</div>
               <input
-                type="number"
-                min={1}
-                step={1}
+                type="text"
                 value={cargo}
                 onChange={e => setCargo(e.target.value)}
-                placeholder="예: 1023"
+                placeholder="예: ex_1023"
                 style={styles.input}
               />
             </div>
             <div>
-              <div style={{ marginBottom: '5px', fontWeight: 700, fontSize: '0.89rem' }}>연료 선택</div>
+              <div style={{ marginBottom: '5px', fontWeight: 700, fontSize: '0.9rem' }}>연료 선택</div>
               <div>
                 <button
                   type="button"
@@ -435,12 +361,6 @@ function Simulation(): JSX.Element {
                 </button>
               </div>
             </div>
-            {/* 경로계산 결과 표시 */}
-            {routeSummary && (
-              <div style={{ marginTop: '12px', color: colors.blue, fontWeight: 700 }}>
-                <span>경로 거리: {routeSummary.distance_km} km</span>
-              </div>
-            )}
             <button
               type="button"
               onClick={handleSimulation}
