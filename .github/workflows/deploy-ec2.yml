@@ -67,20 +67,38 @@ jobs:
             
             # 배포 디렉토리 생성
             sudo mkdir -p /var/www/green-shipping-ai-web
-            sudo mkdir -p /tmp/green-shipping-deploy
+            
+            # 임시 디렉토리 정리 및 생성
+            rm -rf /tmp/green-shipping-deploy
+            mkdir -p /tmp/green-shipping-deploy
             
             # 파일 압축 해제 및 복사
             echo "📂 파일 압축 해제 중..."
             tar -xzf deploy.tar.gz -C /tmp/green-shipping-deploy
             
+            echo "📋 압축 해제된 파일 확인..."
+            ls -la /tmp/green-shipping-deploy/
+            
             echo "📋 파일 복사 중..."
             sudo rm -rf /var/www/green-shipping-ai-web/*
             sudo cp -r /tmp/green-shipping-deploy/* /var/www/green-shipping-ai-web/
             
-            # 권한 설정
+            # 권한 설정 (403 에러 방지)
             echo "🔒 권한 설정 중..."
             sudo chown -R www-data:www-data /var/www/green-shipping-ai-web
             sudo chmod -R 755 /var/www/green-shipping-ai-web
+            
+            # 파일 권한 확인
+            echo "✅ 배포된 파일 확인:"
+            ls -lh /var/www/green-shipping-ai-web/ | head -5
+            
+            # index.html 존재 확인
+            if [ -f "/var/www/green-shipping-ai-web/index.html" ]; then
+              echo "✅ index.html 파일 존재"
+            else
+              echo "❌ index.html 파일 없음!"
+              exit 1
+            fi
             
             # Nginx 재시작
             echo "🔄 Nginx 재시작 중..."
