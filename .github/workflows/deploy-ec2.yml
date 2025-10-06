@@ -68,17 +68,19 @@ jobs:
             # 배포 디렉토리 생성
             sudo mkdir -p /var/www/green-shipping-ai-web
             
-            # 임시 디렉토리 정리 및 생성
-            rm -rf /tmp/green-shipping-deploy
+            # 임시 디렉토리 정리 및 생성 (sudo 사용)
+            echo "🗑️  기존 임시 디렉토리 정리..."
+            sudo rm -rf /tmp/green-shipping-deploy
             mkdir -p /tmp/green-shipping-deploy
             
-            # 파일 압축 해제 및 복사
+            # 파일 압축 해제
             echo "📂 파일 압축 해제 중..."
             tar -xzf deploy.tar.gz -C /tmp/green-shipping-deploy
             
             echo "📋 압축 해제된 파일 확인..."
             ls -la /tmp/green-shipping-deploy/
             
+            # 파일 복사
             echo "📋 파일 복사 중..."
             sudo rm -rf /var/www/green-shipping-ai-web/*
             sudo cp -r /tmp/green-shipping-deploy/* /var/www/green-shipping-ai-web/
