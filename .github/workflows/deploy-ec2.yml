@@ -92,36 +92,65 @@ jobs:
             
             echo "✅ 배포 완료!"
 
-      - name: Wait for server
-        run: |
-          echo "⏳ 서버 준비 대기 중..."
-          sleep 10
-
       - name: Health check
+        timeout-minutes: 2
+        continue-on-error: false
         run: |
           echo "🏥 Health Check 시작..."
+          echo "🌐 대상 URL: ${{ secrets.APP_URL }}"
+          echo ""
           
-          # 기본 연결 테스트
-          if curl -f -s -o /dev/null -w "%{http_code}" ${{ secrets.APP_URL }} | grep -q "200"; then
-            echo "✅ 서버 응답 정상 (HTTP 200)"
+          # 최대 30초 동안 재시도
+          MAX_ATTEMPTS=6
+          ATTEMPT=0
+          SUCCESS=false
+          
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "🔄 시도 $ATTEMPT/$MAX_ATTEMPTS"
+            
+            # HTTP 상태 코드 확인
+            HTTP_CODE=$(curl -s --max-time 5 -o /dev/null -w "%{http_code}" ${{ secrets.APP_URL }} || echo "000")
+            echo "📡 HTTP 상태 코드: $HTTP_CODE"
+            
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ 서버 응답 정상 (HTTP 200)"
+              
+              # React 앱 확인
+              echo "🔍 React 앱 확인 중..."
+              if curl -s --max-time 5 ${{ secrets.APP_URL }} | grep -q '<div id="root">'; then
+                echo "✅ React 앱 로드 확인"
+                SUCCESS=true
+                break
+              else
+                echo "⚠️  HTML은 로드되었지만 React root div를 찾을 수 없음"
+              fi
+            else
+              echo "❌ 서버 응답 실패 (HTTP $HTTP_CODE)"
+            fi
+            
+            if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+              echo "⏳ 5초 후 재시도..."
+              sleep 5
+            fi
+          done
+          
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          if [ "$SUCCESS" = true ]; then
+            echo "🎉 Health Check 통과!"
+            exit 0
           else
-            echo "❌ 서버 응답 실패"
+            echo "❌ Health Check 실패 (30초 타임아웃)"
+            echo ""
+            echo "🔍 디버깅 정보:"
+            echo "1. EC2 인스턴스가 실행 중인지 확인하세요"
+            echo "2. Nginx가 실행 중인지 확인하세요: sudo systemctl status nginx"
+            echo "3. 파일이 배포되었는지 확인하세요: ls -la /var/www/green-shipping-ai-web"
+            echo "4. Nginx 에러 로그: sudo tail -50 /var/log/nginx/error.log"
             exit 1
           fi
-          
-          # HTML 컨텐츠 확인
-          if curl -s ${{ secrets.APP_URL }} | grep -q '<div id="root">'; then
-            echo "✅ React 앱 로드 확인"
-          else
-            echo "❌ React 앱 로드 실패"
-            exit 1
-          fi
-          
-          # 응답 시간 측정
-          response_time=$(curl -o /dev/null -s -w '%{time_total}' ${{ secrets.APP_URL }})
-          echo "⏱️  응답 시간: ${response_time}초"
-          
-          echo "🎉 Health Check 통과!"
 
       - name: Deployment notification
         if: always()
